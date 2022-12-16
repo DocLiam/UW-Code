@@ -1,0 +1,38 @@
+#lang scheme
+
+(require "generate.rkt")
+
+(define (prime? n)
+  (generate
+   (list 2)
+   (λ (x) (or (= (/ n (first x)) (quotient n (first x)))(>= (first x) (sqrt n))))
+   (λ (x) (list (+ (first x) 1)))
+   (λ (x) (and (> n 1) (or (= n 2) (not (= (/ n (first x)) (quotient n (first x)))))))))
+
+(define (my-build-list n f)
+  (generate
+   (cons (sub1 n) (list))
+   (λ (x) (= (first x) -1))
+   (λ (x) (cons (sub1 (car x)) (append (list (f (car x))) (cdr x))))
+   (λ (x) (cdr x))))
+
+(define (my-foldl f z l)
+  (generate
+   (list z l)
+   (λ (x) (empty? (second x)))
+   (λ (x) (list (f (first (second x)) (first x)) (rest (second x))))
+   (λ (x) (first x))))
+
+(define (my-insert e l order)
+  (generate
+   (list '() l)
+   (λ (x) (or (empty? (second x)) (order e (first (second x)))))
+   (λ (x) (list (cons (car (second x)) (first x)) (rest (second x))))
+   (λ (x) (append (first x) (list e) (second x)))))
+
+(define (my-insertion-sort l order)
+  (generate
+   (list '() l)
+   (λ (x) (empty? (second x)))
+   (λ (x) (list (my-insert (first (second x)) (first x) order) (rest (second x))))
+   (λ (x) (first x))))

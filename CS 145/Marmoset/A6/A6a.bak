@@ -1,0 +1,2 @@
+#lang racket
+(provide c x0 findx)

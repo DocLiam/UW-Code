@@ -1,0 +1,1 @@
+("8.6" ta6osx ("6be9af8cd089607fd12b9313b39844cdcd6f3bfc" . "c34674310c189aa0fa494bf44e699ef66c90d820") #"/Users/watsonfamily/Documents/sandbox/GitHub/University-of-Waterloo/CS 145/Marmoset/A9/total-order.rkt" (collects #"errortrace" #"errortrace-key.rkt") (collects #"scheme" #"main.rkt") (collects #"scheme" #"runtime-config.rkt"))

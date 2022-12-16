@@ -1,0 +1,5 @@
+#lang racket
+(deifne-struct foo (a b))
+
+(define x (foo 'homer 'bart))
+(define y (foo 'homer 'bart))

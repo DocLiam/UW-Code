@@ -1,0 +1,52 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname 4a5698aad82e22ced6e8b145492d6782) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname b02e165c098250121d9e3c8a85082f93) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+;; CS145 First Midterm test for lrwatson
+
+;; Start time: 2022-09-27T10:10:20-04:00
+;; Time limit: 2 hours
+
+;; Question 1 [5 marks]  Replace ... in the definition below so that (foo x)
+;; calculates the sum of the non-negative integers less than x.  If you wish,
+;; you may provide additional explanation as text in Explain1.
+
+(define (foo x)
+  
+  ...
+  
+  )
+
+(define Explain1 "
+
+  ...
+
+")
+
+;; Question 2 [5 marks]  Replace ... in the definition below so that
+;; (floorlog2 x) calculates exactly the floor of the base-2 logarithm
+;; of a positive integer x.  In Explain2, prove that your solution is
+;; correct.
+
+(define (floorlog2 x)
+
+     (floor (log 2 x))
+  
+  )
+
+(define Explain2 "
+
+   ...
+
+")
+
+;; Question 3 [2 marks]  How many min-height trees are there with four
+;; elements?  Explain if you wish.
+
+(define Answer3 "
+
+   
+
+")

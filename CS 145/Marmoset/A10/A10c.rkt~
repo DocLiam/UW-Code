@@ -1,0 +1,24 @@
+#lang lazy
+
+(require "Lambda.rkt")
+
+(define (SUB1 a)
+  ((Y
+    (λ (sub1)
+      (λ (num)
+        (((Car num)
+            (If (Z? (Cdr num))
+                Z
+                (Cons False (Cdr num))))
+            (Cons True (sub1 (Cdr num))))))) a))
+
+(define (LENGTH a)
+  ((Y
+    (λ (length)
+      (λ (num len)
+        (If (Z? num)
+            len
+            (length (Cdr num) (ADD1 len)))))) a Z))
+
+(define (SPLIT a i)
+  

@@ -1,0 +1,1 @@
+("8.6" ta6osx ("89f40f99fd0c4050d0c26872bccc9c15b67dc1c6" . "f4e54d50761838d94be6b6366668af599bcc11ce") #"/Users/watsonfamily/Documents/sandbox/GitHub/University-of-Waterloo/CS 145/Marmoset/A12/RAM.rkt" (collects #"errortrace" #"errortrace-key.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))

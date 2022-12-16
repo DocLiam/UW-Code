@@ -1,0 +1,64 @@
+#lang lazy
+
+(require "IOStream.rkt")
+(require "Gen.rkt")
+
+(define (RPS Player1 Player2)
+      (define A (Player1 (history B)))
+      (define B (Player2 (history A)))
+      (playgame A B))
+
+(define (randomplay h)(rps))
+
+(define (const move)
+  (cons move (const move)))
+
+(define (bart opponent-history)
+  (const 'rock))
+
+(define (lisa opponent-history)
+  (const 'paper))
+
+(define (maggie opponent-history)
+  (display opponent-history)
+  (if (eq? 'paper (car (cadadr (RPS lisa (λ (x) opponent-history)))))
+      (const 'scissors)
+      (const 'paper)))
+
+(define (sum p)
+  (+ (car p) (cadr p) (caddr p)))
+
+(define (norm p s)
+  (list (/ (car p) s) (/ (cadr p) s) (/ (caddr p) s)))
+
+(define (probability s n p)
+  (cond
+    [(= n 0) (norm p (sum p))]
+    [true (probability (cdr s)
+                       (sub1 n)
+                       (cond
+                         [(eq? 'rock (car s)) (list (+ (car p) (exp (* -1 n))) (cadr p) (caddr p))]
+                         [(eq? 'paper (car s)) (list (car p) (+ (cadr p) (exp (* -1 n))) (caddr p))]
+                         [true (list (car p) (cadr p) (+ (caddr p) (exp (* -1 n))))]))]))
+
+(define (oppose move)
+  (cond
+    [(eq? 'rock move) 'paper]
+    [(eq? 'paper move) 'scissors]
+    [true 'rock]))
+
+(define (champion opponent-history)
+  (Gen
+   opponent-history
+   0
+   (λ (inp state cont)
+     (define i (random 1000))
+     (define relevant (list-ref inp (+ state 10)))
+     (define probs (probability relevant 10 '(0 0 0)))
+     (display probs)
+     (newline)
+     (cont inp (add1 state) (list (cond
+                             [(< i (* 1000 (car probs))) (oppose 'rock)]
+                             [(< i (* 1000 (cadr probs))) (oppose 'paper)]
+                             [true (oppose 'scissors)]))))))
+   

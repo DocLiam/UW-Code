@@ -1,0 +1,8 @@
+#lang racket
+
+(define (tree-count n)
+  (cond
+    [(zero? n) 1]
+    [true
+     (define prevs (build-list n tree-count))
+     (foldl + 0 (map * prevs (reverse prevs)))]))

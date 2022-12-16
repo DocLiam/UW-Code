@@ -1,0 +1,1 @@
+("8.6" ta6osx ("04e8e187f7dff8eb2ae6c56a0e3907b80e28c6f8" . "bdc9050de06511f90da54a58e74374084eec7b14") #"/Users/watsonfamily/Documents/sandbox/GitHub/University-of-Waterloo/CS 145/Marmoset/A11/IOStream.rkt" (collects #"errortrace" #"errortrace-key.rkt") (collects #"lazy" #"lang" #"reader.rkt") (collects #"lazy" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))

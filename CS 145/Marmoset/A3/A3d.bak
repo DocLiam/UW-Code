@@ -1,0 +1,31 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname A3d) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+(define-struct node (left right))
+
+(define (min-depth-empty tree n)
+  (cond
+    [(empty? tree) n]
+    [true (min (min-depth-empty (node-left tree) (+ n 1)) (min-depth-empty (node-right tree) (+ n 1)))]))
+
+(define (rebuild-helper rebuilt-left-subtree rebuilt-right-subtree tree)
+  (if (not (equal? rebuilt-left-subtree false)) (make-node rebuilt-left-subtree (node-right tree)) (if (not (equal? rebuilt-right-subtree false)) (make-node (node-left tree) rebuilt-right-subtree) false)))
+
+(define (rebuild tree i n)
+  (if (= n i) (if (empty? tree) (make-node empty empty) false) (rebuild-helper (rebuild (node-left tree) (+ i 1) n) (rebuild (node-right tree) (+ i 1) n) tree)))
+
+(define (tree-grow-min tree)
+  (rebuild tree 0 (min-depth-empty tree 0)))
+
+
+(define (max-depth-empty tree n)
+  (cond
+    [(empty? tree) 0]
+    [(and (empty? (node-left tree)) (empty? (node-right tree))) n]
+    [true (max (max-depth-empty (node-left tree) (+ n 1)) (max-depth-empty (node-right tree) (+ n 1)))]))
+
+(define (rebuild-shrink tree i n)
+  (if (= n i) (if (empty? tree) false (if (and (empty? (node-left tree)) (empty? (node-right tree))) empty false)) (rebuild-helper (rebuild-shrink (node-left tree) (+ i 1) n) (rebuild-shrink (node-right tree) (+ i 1) n) tree)))
+
+(define (tree-shrink-min tree)
+  (rebuild-shrink tree 0 (max-depth-empty tree 0)))

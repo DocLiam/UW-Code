@@ -1,0 +1,26 @@
+#lang racket
+
+(require "generate.rkt")
+
+(define (special-fold f l order)
+  (generate
+   (list l '())
+   (λ (x) (or (empty? (first x)) (empty? (rest (first x)))))
+   (λ (x) (list (rest (rest (first x))) (append (list (f (if (real? (second (first x))) (list (second (first x))) (second (first x))) (if (real? (first (first x))) (list (first (first x))) (first (first x))) order)) (rest x))))
+   (λ (x) (if (empty? (first x)) (second x) (append (first x) (second x))))))
+
+(define (my-sort-helper a b order)
+  (generate
+   (list a b '())
+   (λ (x) (or (empty? (first x)) (empty? (second x))))
+   (λ (x) (if (order (first (second x)) (first (first x)))
+              (list (first x) (rest (second x)) (cons (first (second x)) (third x)))
+              (list (rest (first x)) (second x) (cons (first (first x)) (third x)))))
+   (λ (x) (if (order 1 2) (append (third x) (first x) (second x)) (append (first x) (second x) (third x))))))
+
+(define (my-sort l order)
+  (generate
+   (list l)
+   (λ (x) (empty? (rest (first x))))
+   (λ (x) (list (special-fold my-sort-helper (first x) order)))
+   (λ (x) (first x))))

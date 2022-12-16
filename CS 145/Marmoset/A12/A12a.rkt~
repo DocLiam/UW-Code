@@ -1,0 +1,15 @@
+#lang lazy
+
+(require "RAM.rkt")
+
+(define (step inp state cont)
+    (cond
+        [(empty? inp) empty]
+        [(member (car inp) state)
+          (cont (cdr inp) state (list (foldl + 0 state)))]
+        [true
+          (cont (cdr inp) (cons (car inp) state) (list (foldl + (car inp) state)))]))
+
+(define (step inp state cont)
+  (cond
+    [

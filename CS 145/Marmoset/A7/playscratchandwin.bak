@@ -1,0 +1,18 @@
+#lang scheme
+
+(require "scratchandwin.rkt")
+(require "prize.rkt")
+
+(define (unique? secret lst)
+  (cond
+    [(empty? lst) true]
+    [(= secret (car lst)) false]
+    [true (unique? secret (cdr lst))]))
+
+(define (playgame n)
+  (playgame-helper '() '() 0 n))
+
+(define (playgame-helper runninglist cardlist i n)
+  (cond
+    [(= i n) cardlist]
+    [true ((λ (c r l i n) (if (unique? (car (scratch c)) r) (playgame-helper (cons (car (scratch c)) r) (cons c l) (+ i 1) n) (playgame-helper r l i n))) (drawcard n) runninglist cardlist i n)]))
