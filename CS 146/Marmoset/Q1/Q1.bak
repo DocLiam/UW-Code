@@ -1,0 +1,27 @@
+#lang racket
+
+(define (check-lst current-word word-lst)
+  (cond
+    [(empty? word-lst) 0]
+    [(string=? current-word (first (first word-lst))) (second (first word-lst))]
+    [else (check-lst current-word (rest word-lst))]))
+
+(define (build-list current-word word-lst)
+   (cond
+    [(string=? current-word (first (first word-lst))) (cons (list (first (first word-lst)) (second (first word-lst))) (rest word-lst))]
+    [else (cons (first word-lst) (check-lst current-word (rest word-lst)))]))
+
+(define (iterate-chars current-word-lst word-lst compressed-lst)
+  (define current-char (read-char))
+  (cond
+    [(and (not (eof-object? current-char)) (char-alphabetic? current-char)) (iterate-chars (cons current-char current-word-lst) word-lst compressed-lst)]
+    [else
+     (define freq (check-lst (list->string (reverse current-word-lst)) word-lst))
+     (define new-current-word-lst
+       (cond
+         [(= freq 0) current-word-lst]
+         [else
+          (reverse (string->list (number->string freq)))]))
+     (if (not (eof-object? current-char))
+         (iterate-chars empty (if (= freq 0) (cons (list (list->string (reverse new-current-word-lst)) 1) word-lst) (build-list (list->string (reverse new-current-word-lst)) word-lst)) (append (list #\ ) new-current-word-lst compressed-lst))
+         (list->string (reverse (append new-current-word-lst compressed-lst))))]))
