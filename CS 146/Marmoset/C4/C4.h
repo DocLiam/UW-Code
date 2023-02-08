@@ -1,0 +1,1 @@
+void sumsqr(int n);
