@@ -1,1 +1,97 @@
 #lang racket
+
+(define-struct blist (lst))
+
+(define (blist-to-nat-helper blist nat i)
+  (cond
+    [(empty? blist) nat]
+    [else
+     (blist-to-nat-helper (rest blist) (+ nat (* (first blist) (expt 10000 i))) (+ i 1))]))
+
+(define (blist-to-nat blist)
+  (blist-to-nat-helper blist 0 0))
+
+(define (log-nat nat i)
+  (cond
+    [(= (quotient nat 10000) 0) i]
+    [else
+     (log-nat (quotient nat 10000) (+ i 1))]))
+
+(define (nat-to-blist-helper nat blist)
+  (cond
+    [(= (log-nat nat 0) 0) (cons nat blist)]
+    [else
+     (nat-to-blist-helper (modulo nat (expt 10000 (log-nat nat 0))) (cons (quotient nat (expt 10000 (log-nat nat 0))) blist))]))
+
+(define (nat-to-blist nat)
+  (cond
+    [(= nat 0) empty]
+    [else
+     (nat-to-blist-helper nat empty)]))
+
+(define (continue-add blist blist3 carry)
+  (cond
+    [(empty? blist) (if (> carry 0) (cons carry blist3) blist3)]
+    [else
+     (continue-add (rest blist) (cons (modulo (+ (first blist) carry) 10000) blist3) (quotient (+ (first blist) carry) 10000))]))
+
+(define (add-helper blist1 blist2 blist3 carry)
+  (cond
+    [(empty? blist1) (continue-add blist2 blist3 carry)]
+    [(empty? blist2) (continue-add blist1 blist3 carry)]
+    [else
+     (add-helper (rest blist1) (rest blist2) (cons (modulo (+ (first blist1) (first blist2) carry) 10000) blist3) (quotient (+ (first blist1) (first blist2) carry) 10000))]))
+
+(define (add blist1 blist2)
+  (reverse (add-helper blist1 blist2 empty 0)))
+
+(define (mult-helper2 bigit blist2 blist3)
+  (cond
+    [(empty? blist2) empty]
+    [(empty? blist3) (cons (* bigit (first blist2)) (mult-helper2 bigit (rest blist2) empty))]
+    [else
+     (cons (+ (* bigit (first blist2)) (first blist3)) (mult-helper2 bigit (rest blist2) (rest blist3)))]))
+
+(define (mult-helper blist1 blist2 blist3)
+  (cond
+    [(empty? blist1) blist3]
+    [else
+     (define current-sum (mult-helper2 (first blist1) blist2 blist3))
+     (cons (first current-sum) (mult-helper (rest blist1) blist2 (rest current-sum)))]))
+
+(define (mult blist1 blist2)
+  (cond
+    [(or (empty? blist1) (empty? blist2)) empty]
+    [else
+     (add (mult-helper blist1 blist2 empty) empty)]))
+
+(blist-to-nat (mult (list 8992 7543 5385) (list 9253)))
+(blist-to-nat (mult (list 2638 6691 2251) (list 7035 5656 7199 296 1650 5819 9768 4119 5093 9616)))
+(blist-to-nat (mult (list 414 565) (list 2342 2723 3860 5603)))
+(blist-to-nat (mult (list 127 9747 3909 230 9506 3087 474 5766 3196) (list 3385 9882 2097 4294)))
+(blist-to-nat (mult (list 4161 4041 3279 1907 4927 469 2692 3596 4325 5368) (list 8673 8557)))
+(blist-to-nat (mult (list 9060 871 5733 1154 7455 2212 3978 7331 6504 6530) (list 2408 4420 9470 4517 3265 9446 5599 9790)))
+(blist-to-nat (mult (list 8012 9907 235 5274 7116 6656) (list 7847 8280 7599 5871 8091 512 5744 669 7553 5638)))
+(blist-to-nat (mult (list 4020) (list 9989 9503 7127 7410 6624)))
+(blist-to-nat (mult (list 1207 96 4867 6866 5779 3647 2957 5326) (list 7223 5371)))
+(blist-to-nat (mult (list 1722 5467) (list 7049 1641 3188 6549 3775 3377 2811)))
+(blist-to-nat (mult (list 9861 7042 6450 9424 3757 8169 2471 3279 5063) (list 4713 6990 1723 8829 6736)))
+(blist-to-nat (mult (list 665 842) (list 5808 5858 43 6593 3797 5238 5515 1644 1137 8749)))
+(blist-to-nat (mult (list 7976 6837 525 3549 3327 1380 6824 7827 5390 993) (list 4159)))
+(blist-to-nat (mult (list 6883 3129) (list 5638 4481)))
+(blist-to-nat (mult (list 7480 3173 4236 3041 8017 4709 8636 3804) (list 5004 4319 386 5287 7817 3349 8628 1808 4893)))
+(blist-to-nat (mult (list 102 2864 351 9560 1634 2926 7098 7566 3378) (list 2514 1771 1092 4509 6681 2085 9545)))
+(blist-to-nat (mult (list 2138) (list 3150 1626 5705 1268 4638 9492 7490 8205)))
+(blist-to-nat (mult (list 7898 4119 6091 4880 8914 205 7097 7428 9373) (list 1583)))
+(blist-to-nat (mult (list 1291) (list 9437 5368 3057 9078 61 3160 8349 8376 1182)))
+(blist-to-nat (mult (list 6267 9458 3839 5822 6469 3358 1155 3510) (list 6830 2208 6322)))
+(blist-to-nat (mult (list 4484 7741 9979 221 5849) (list 3374 8888 9456 4402 9729 5491 4554 697 2613)))
+(blist-to-nat (mult (list 9451 251 4751 4473 9296) (list 342)))
+(blist-to-nat (mult (list 5160 6171 3047 3785 1592 825) (list 9195 7407 7013)))
+(blist-to-nat (mult (list 8916 7343 2348 8740 927 6734 8867 8382 6195) (list 5780 8440 6634 9114 7509)))
+(blist-to-nat (mult (list 1045 1936 2386 1241 5061 6092 8394 7620 5727) (list 9389 993 742 5507 6068 621 612 8762 634 6483)))
+(blist-to-nat (mult (list 5541) (list 4478 1537 5289 4289 7179 2936 9370 1042 7590 4669)))
+(blist-to-nat (mult (list 8236 2650 228 319) (list 2364 5665)))
+(blist-to-nat (mult (list 8960 1459 9475 8352 6759 6916 3873 1494 1255) (list 1717 1020 575)))
+(blist-to-nat (mult (list 8539 6865 6230 8283 8237) (list 2366 3118 7461 6790 7684 4347 4250)))
+(blist-to-nat (mult (list 5535 4739 9640 5634 2713) (list 3863 1560)))
