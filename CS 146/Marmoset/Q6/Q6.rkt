@@ -8,6 +8,12 @@
 
 (struct app (fn arg) #:transparent) ; fn and arg are ASTs.
 
+(struct seq (fst snd) #:transparent)
+
+(struct set (var newval) #:transparent)
+
+(struct result (val newstore) #:transparent)
+
 ;; An AST is a (union bin fun app).
 
 (struct sub (name val) #:transparent)
@@ -25,6 +31,8 @@
 
 (define (parse sx)
   (match sx
+    [`(set ,v ,x) (set (parse v) (parse x))]
+    [`(seq ,x ,y) (seq (parse x) (parse y))]
     [`(with ((,nm ,nmd)) ,bdy) (app (fun nm (parse bdy)) (parse nmd))]
     [`(+ ,x ,y) (bin '+ (parse x) (parse y))]
     [`(* ,x ,y) (bin '* (parse x) (parse y))]
@@ -43,36 +51,50 @@
     ['- -]
     ['/ /]))
 
-
-
 ;; lookup: symbol env -> value
 ;; looks up a substitution in an environment (topmost one)
 
 (define (lookup var env)
   (cond
-    [(empty? env) (error 'interp "unbound variable ~a" var)]
-    [(symbol=? var (sub-name (first env))) (sub-val (first env))]
+    [(or (empty? env) (and (symbol? var) (symbol=? 'undefined var))) 'undefined]
+    [(and (symbol? var) (symbol? (sub-name (first env))) (symbol=? var (sub-name (first env)))) (sub-val (first env))]
+    [(and (number? var) (number? (sub-name (first env))) (= var (sub-name (first env)))) (sub-val (first env))]
     [else (lookup var (rest env))]))
-
 
 ;; interp: AST env -> value
 
-(define (interp ast env)
+(define (interp ast e s)
   (match ast
-    [(fun v bdy) (closure v bdy env)]
-    [(app fun-exp arg-exp)
-       (match (interp fun-exp env)
-         [(closure v bdy cl-env)
-          (interp bdy (cons (sub v (interp arg-exp env)) cl-env))])]
+    [(fun p b)
+     (result (closure p b e) s)]
+    [(app f x)
+     (match (interp f e s)
+       [(result (closure fp fb fe) s1)
+        (match (interp x e s1)
+          [(result y s2)
+           (define nl (length s2))
+           (define ne (cons (sub fp nl) fe))
+           (define ns (cons (sub nl y) s2))
+           (interp fb ne ns)])])]
     [(bin op x y)
-       ((op-trans op) (interp x env) (interp y env))]
-    [x (if (number? x)
-           x
-           (lookup x env))]))
-             
-; completely inadequate tests
-(check-expect (parse '(* 2 3)) (bin '* 2 3))
-
-(check-expect (interp (parse '(* 2 3)) empty) 6)
-
-(test)
+     (match (interp x e s)
+       [(result v s1)
+        (match (interp y e s1)
+          [(result w s2)
+           (result ((op-trans op) v w) s2)])])]
+    [(seq x y)
+     (match (interp x e s)
+       [(result dummy s1)
+        (match (interp y e s1)
+          [(result v s2)
+           (result v s2)])])]
+    [(set x y)
+     (define lx (lookup x e))
+     (match (interp y e s)
+       [(result nv s1)
+        (define ns (cons (sub lx nv) s1))
+        (result void ns)])]
+    [x
+     (if (number? x)
+           (result x s)
+           (result (lookup (lookup x e) s) s))]))
