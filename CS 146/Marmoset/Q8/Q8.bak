@@ -1,0 +1,101 @@
+#lang racket
+
+(define symbol-table (make-hash))
+
+(define done-psymbols (make-hash))
+
+(define symbol-types (make-hash))
+
+(define (first-pass stmt-list index)
+  (if (empty? stmt-list) void
+    (let ([new-index index])
+      (begin
+           (match (first stmt-list)
+             [`(const ,psymbol ,psymbol-or-value) (if (hash-has-key? symbol-table psymbol) (error "duplicate") (begin (set! new-index (- new-index 1)) (hash-set! symbol-table psymbol psymbol-or-value) (hash-set! symbol-types psymbol 'const)))]
+             [`(data ,psymbol (,nat ,psymbol-or-value)) (if (hash-has-key? symbol-table psymbol) (error "duplicate") (begin (set! new-index (+ new-index (- nat 1))) (hash-set! symbol-table psymbol index) (hash-set! symbol-types psymbol 'data)))]
+             [`(data ,psymbol ,psymbol-or-value ...) (if (hash-has-key? symbol-table psymbol) (error "duplicate") (begin (set! new-index (+ new-index (- (length psymbol-or-value) 1))) (hash-set! symbol-table psymbol index) (hash-set! symbol-types psymbol 'data)))]
+             [`(label ,psymbol) (if (hash-has-key? symbol-table psymbol) (error "duplicate") (begin (set! new-index (- new-index 1)) (hash-set! symbol-table psymbol index) (hash-set! symbol-types psymbol 'label)))]
+             [else void])
+           (first-pass (rest stmt-list) (+ new-index 1))))))
+
+(define (resolve-psymbols psymbol)
+  (cond
+    [(hash-has-key? done-psymbols psymbol) (error "circular")]
+    [(not (symbol? psymbol)) psymbol]
+    [else
+     (hash-set! done-psymbols psymbol 0)
+     (define value (resolve-psymbols (hash-ref symbol-table psymbol)))
+     (hash-set! symbol-table psymbol value)
+     value]))
+
+(define (second-pass psymbol-list)
+  (cond
+    [(empty? psymbol-list) void]
+    [else
+     (begin (hash-clear! done-psymbols)
+            (resolve-psymbols (first psymbol-list))
+            (second-pass (rest psymbol-list)))]))
+
+(define (primpl-assemble a-primpl-list)
+  (first-pass a-primpl-list 0)
+  (let ([psymbol-list (hash-map symbol-table (lambda (k v) k))])
+    (second-pass psymbol-list))
+  (construct-list a-primpl-list))
+
+(define (replace lst)
+  (cond
+    [(empty? lst) empty]
+    [(not (symbol? (first lst))) (cons (first lst) (replace (rest lst)))]
+    [else
+     (if (hash-has-key? symbol-table (first lst))
+         (cons (hash-ref symbol-table (first lst)) (replace (rest lst)))
+         (error "undefined"))]))
+  
+(define (delegate expr indexed-flag jump-branch-flag)
+  (match expr
+    [`(,imm ,ind) (list (delegate imm #t #f) (if (symbol? ind)
+                                                 (if (hash-has-key? symbol-table ind)
+                                                     (if (symbol=? 'data (hash-ref symbol-types ind))
+                                                         (list (hash-ref symbol-table ind))
+                                                         (delegate ind #t #f))
+                                                     (error "undefined"))
+                                                 (delegate ind #t #f)))]
+    [`(,ind) (if (symbol? ind) (error "incorrect") (list ind))]
+    [`,imm (if (symbol? imm)
+               (if (hash-has-key? symbol-table imm)
+                   (if jump-branch-flag
+                       (if (or (symbol=? 'const (hash-ref symbol-types imm)) (symbol=? 'data (hash-ref symbol-types imm)))
+                           (list (hash-ref symbol-table imm))
+                           (hash-ref symbol-table imm))
+                       (if (symbol=? 'label (hash-ref symbol-types imm))
+                               (error "incorrect")
+                               (if indexed-flag
+                                   (hash-ref symbol-table imm)
+                                   (if (symbol=? 'data (hash-ref symbol-types imm))
+                                       (list (hash-ref symbol-table imm))
+                                       (hash-ref symbol-table imm)))))
+                   (error "undefined"))
+               imm)]))
+  
+(define (construct-list stmt-list)
+  (cond
+    [(empty? stmt-list) empty]
+    [else
+     (append
+      (match (first stmt-list)
+        [`(halt) (list 0)]
+        [`(lit ,psymbol-or-value) (if (symbol? psymbol-or-value) (if (hash-has-key? symbol-table psymbol-or-value) (list (hash-ref symbol-table psymbol-or-value)) (error "undefined")) (list psymbol-or-value))]
+        [`(const ,psymbol ,psymbol-or-value) empty]
+        [`(label ,psymbol) empty]
+        [`(data ,psymbol (,nat ,psymbol-or-value)) (let ([x (if (symbol? psymbol-or-value) (if (hash-has-key? symbol-table psymbol-or-value) (hash-ref symbol-table psymbol-or-value) (error "undefined")) psymbol-or-value)]) (build-list nat (lambda (y) x)))]
+        [`(data ,psymbol ,psymbol-or-value ...) (replace psymbol-or-value)]
+        [`(branch ,opd1 ,opd2) (list (list 'branch (delegate opd1 #f #t) (delegate opd2 #f #t)))]
+        [`(jump ,opd) (list (list 'jump (delegate opd #f #t)))]
+        [`(,_ ,dest ,opd1 ,opd2) (if (and (symbol? dest) (hash-has-key? symbol-table dest) (symbol=? 'const (hash-ref symbol-types dest))) (error "incorrect") (list (list (first (first stmt-list)) (delegate dest #f #f) (delegate opd1 #f #f) (delegate opd2 #f #f))))]
+        [`(,other ,dest ,opd) (if (and (symbol? dest) (hash-has-key? symbol-table dest) (symbol=? 'const (hash-ref symbol-types dest))) (error "incorrect") (list (list (first (first stmt-list)) (delegate dest #f #f) (delegate opd #f #f))))]
+        [`(print-val ,opd) (list (list 'print-val (delegate opd #f #f)))]
+        [`(print-string ,string) (list (list 'print-string string))]
+        [else empty])
+      (construct-list (rest stmt-list)))]))
+
+(primpl-assemble '((print-string "hello")))
